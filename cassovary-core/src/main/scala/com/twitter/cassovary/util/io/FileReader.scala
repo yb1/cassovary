@@ -48,7 +48,7 @@ abstract class FileReader[T](fileName: String, isGzip: Boolean = false) extends 
     var found: Option[T] = None
     while (lines.hasNext && found.isEmpty) {
       val line = lines.next().trim
-      if (line.charAt(0) != '#') {
+      if (!line.isEmpty() && line.charAt(0) != '#') {
         try {
           found = Some(processOneLine(line))
         } catch {
