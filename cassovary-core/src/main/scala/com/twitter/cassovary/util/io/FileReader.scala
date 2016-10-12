@@ -48,7 +48,7 @@ abstract class FileReader[T](fileName: String, enc: Option[String] = None) exten
     var found: Option[T] = None
     while (lines.hasNext && found.isEmpty) {
       val line = lines.next().trim
-      if (line.charAt(0) != '#') {
+      if (line.charAt(0) != '#' && !line.startsWith("twitter")) {
         try {
           found = Some(processOneLine(line))
         } catch {
