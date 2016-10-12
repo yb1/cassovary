@@ -93,6 +93,8 @@ object PerformanceBenchmark extends GzipGraphDownloader {
   val getNodeFlag = flags("gn", 0, "run getNodeById benchmark with a given number of steps")
   val reps = flags("reps", DEFAULT_REPS, "number of times to run benchmark")
   val adjacencyList = flags("a", false, "graph in adjacency list format")
+  val gzipFlag = flags("gz", false, "Is file in gzip format")
+
 
   def cacheRemoteFile(url: String): (String, String) = {
     printf("Downloading remote file from %s\n", url)
@@ -105,12 +107,12 @@ object PerformanceBenchmark extends GzipGraphDownloader {
 
   def readGraph(path: String, filename: String, adjacencyList: Boolean): DirectedGraph[Node] = {
     if (adjacencyList) {
-      AdjacencyListGraphReader.forIntIds(path, filename).toArrayBasedDirectedGraph()
+      AdjacencyListGraphReader.forIntIds(path, filename, isGzip = gzipFlag()).toArrayBasedDirectedGraph()
     } else {
       val sep = separatorInt().toChar
       printf("Using Character (%d in Int) as separator\n", sep.toInt)
       ListOfEdgesGraphReader.forIntIds(path, filename, graphDir = StoredGraphDir.BothInOut,
-        separator = sep).toSharedArrayBasedDirectedGraph(forceSparseRepr = None)
+        separator = sep, isGzip = gzipFlag()).toSharedArrayBasedDirectedGraph(forceSparseRepr = None)
       //separator = sep).toArrayBasedDirectedGraph(neighborsSortingStrategy = LeaveUnsorted,
       //      forceSparseRepr = None)
     }
