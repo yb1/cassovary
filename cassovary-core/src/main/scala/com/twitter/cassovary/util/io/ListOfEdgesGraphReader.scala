@@ -68,14 +68,15 @@ class ListOfEdgesGraphReader[T](
     removeDuplicates: Boolean = false,
     sortNeighbors: Boolean = false,
     separator: Char = ' ',
-    sortedBySourceId: Boolean = true
+    sortedBySourceId: Boolean = true,
+    enc: Option[String] = None
     ) extends GraphReaderFromDirectory[T] {
 
   private class OneShardReader(filename: String, nodeNumberer: NodeNumberer[T])
     extends Iterable[NodeIdEdgesMaxId] {
 
     def twoNodeIdsIterator(): Iterator[(Int, Int)] = {
-      new TwoTsFileReader[T](filename, separator, idReader) map { case (source, dest) =>
+      new TwoTsFileReader[T](filename, separator, idReader, enc) map { case (source, dest) =>
         val internalFromId = nodeNumberer.externalToInternal(source)
         val internalToId = nodeNumberer.externalToInternal(dest)
         (internalFromId, internalToId)
@@ -215,10 +216,11 @@ object ListOfEdgesGraphReader {
       removeDuplicates: Boolean = false,
       sortNeighbors: Boolean = false,
       separator: Char = ' ',
-      graphDir: StoredGraphDir = StoredGraphDir.OnlyOut) =
+      graphDir: StoredGraphDir = StoredGraphDir.OnlyOut,
+      encoding: Option[String] = None) =
     new ListOfEdgesGraphReader[Int](directory, prefixFileNames,
       new NodeNumberer.IntIdentity(), ParseString.toInt, removeDuplicates,
-      sortNeighbors, separator) {
+      sortNeighbors, separator, enc = encoding) {
       override def storedGraphDir: StoredGraphDir = graphDir
     }
 }

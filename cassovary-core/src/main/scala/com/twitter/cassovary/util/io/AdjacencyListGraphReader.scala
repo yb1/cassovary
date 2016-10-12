@@ -60,7 +60,8 @@ class AdjacencyListGraphReader[T] (
   val directory: String,
   override val prefixFileNames: String = "",
   val nodeNumberer: NodeNumberer[T],
-  idReader: (String => T)
+  idReader: (String => T),
+  enc : Option[String] = None
 ) extends GraphReaderFromDirectory[T] {
 
   /**
@@ -80,7 +81,7 @@ class AdjacencyListGraphReader[T] (
     override def iterator = new Iterator[NodeIdEdgesMaxId] {
 
       var lastLineParsed = 0
-      private val src = Source.fromFile(filename)
+      private val src = if (enc.getOrElse("").isEmpty) Source.fromFile(filename) else Source.fromFile(filename, enc.get)
       private val lines = src.getLines()
         .map{x => {lastLineParsed += 1; x}}
 
@@ -135,7 +136,7 @@ class AdjacencyListGraphReader[T] (
 object AdjacencyListGraphReader {
   def forIntIds(directory: String, prefixFileNames: String = "",
       nodeNumberer: NodeNumberer[Int] = new NodeNumberer.IntIdentity(),
-      graphDir: StoredGraphDir = StoredGraphDir.OnlyOut) =
+      graphDir: StoredGraphDir = StoredGraphDir.OnlyOut, encoding : Option[String] = None) =
     new AdjacencyListGraphReader[Int](directory, prefixFileNames, nodeNumberer, ParseString.toInt) {
       override def storedGraphDir: StoredGraphDir = graphDir
     }

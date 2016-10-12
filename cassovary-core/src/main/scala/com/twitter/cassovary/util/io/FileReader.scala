@@ -6,15 +6,24 @@ import com.twitter.logging.Logger
 import com.twitter.util.NonFatal
 
 import scala.io.Source
+import java.io.FileInputStream
+import java.io.BufferedInputStream
+import java.util.zip.GZIPInputStream
 
-abstract class FileReader[T](fileName: String) extends Iterator[T] {
+abstract class FileReader[T](fileName: String, enc: Option[String] = None) extends Iterator[T] {
   protected val log = Logger.get()
   protected var lastLineParsed = 0
   log.info("Starting reading from file %s...\n", fileName)
-  private val lines = Source.fromFile(fileName).getLines().map { x =>
+  private val source = if (!enc.getOrElse("").isEmpty)
+    Source.fromFile(fileName, enc.get)
+  else
+    Source.fromFile(fileName)
+
+  private val lines = source.getLines().map { x =>
     lastLineParsed += 1
     x
   }
+
   private var _next: Option[T] = checkNext()
 
   def hasNext: Boolean = _next.isDefined
@@ -53,7 +62,7 @@ abstract class FileReader[T](fileName: String) extends Iterator[T] {
   }
 
   def close(): Unit = {
-    Source.fromFile(fileName).close()
+    source.close()
   }
 
 }
@@ -61,8 +70,8 @@ abstract class FileReader[T](fileName: String) extends Iterator[T] {
 // T is the id type, typically Int or Long or String
 class TwoTsFileReader[T](fileName: String,
     separator: Char,
-    idReader: (String, Int, Int) => T)
-    extends FileReader[(T, T)](fileName) {
+    idReader: (String, Int, Int) => T, enc: Option[String])
+    extends FileReader[(T, T)](fileName, enc) {
 
   def processOneLine(line: String): (T, T) = {
     val i = line.indexOf(separator)
